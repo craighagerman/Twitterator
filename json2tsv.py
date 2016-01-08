@@ -149,6 +149,34 @@ def json2tsv(data):
 
 
 
+def convert(infile, outfile):
+    lines = (line.strip() for line in open(infile) if not line.strip() == "")
+    with open(outfile, "w") as fo:
+        for line in lines:
+            try:
+                s = re.sub(nlpattern, " ", line)
+                jdata = json.loads(s)
+                tdata = json2tsv(jdata)
+                fo.write(tdata + "\n")
+            except ValueError:
+                print("ValueError")
+
+
+
+
+
+
+
+
+def processDir(indir, outdir):
+    jfiles = [f for f in os.listdir(indir) if f.endswith(".json")]
+    jfiles.sort()
+    for jf in jfiles:
+        infile = os.path.join(indir, jf)
+        outfile = os.path.join(outdir, jf.replace(".json", ".tsv"))
+        print("processing {}".format(infile))
+        convert(infile, outfile)
+
 
 
 
@@ -192,22 +220,33 @@ if __name__ == '__main__':
 
 
 
+# for d in dirs:
+#     outfile = os.path.join(d, os.path.split(d)[1] + ".tsv")
+#     with open(outfile, "w") as fo:
+#         jfiles = [os.path.join(d, f) for f in os.listdir(d) if f.endswith(".json")]
+#         for jfile in jfiles:
+#             print("processing {}".format(jfile))
+#             lines = [x.strip() for x in open(jfile)]
+#             for line in lines:
+#                 try:
+#                     data = json.loads(line)
+#                     tsvline = json2tsv(data)
+#                     fo.write(tsvline + "\n")
+#                 except:
+#                     continue
 
 
-for d in dirs:
-    outfile = os.path.join(d, os.path.split(d)[1] + ".tsv")
-    with open(outfile, "w") as fo:
-        jfiles = [os.path.join(d, f) for f in os.listdir(d) if f.endswith(".json")]
-        for jfile in jfiles:
-            print("processing {}".format(jfile))
-            lines = [x.strip() for x in open(jfile)]
-            for line in lines:
-                try:
-                    data = json.loads(line)
-                    tsvline = json2tsv(data)
-                    fo.write(tsvline + "\n")
-                except:
-                    continue
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -65,14 +65,13 @@ def save_profiles(profiles, outfile):
 
 
 
-# In [174]: len(pols)
-# Out[174]: 257
 
-# In [175]: len(parties)
-# Out[175]: 17
 
-# In [176]: len(newspapers)
-# Out[176]: 108
+
+
+
+
+
 
 outdir = '/Users/chagerman/Dropbox/code/Election2015/resources'
 
