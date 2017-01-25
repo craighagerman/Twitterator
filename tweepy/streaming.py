@@ -4,10 +4,12 @@
 
 # Appengine users: https://developers.google.com/appengine/docs/python/sockets/#making_httplib_use_sockets
 
-from __future__ import absolute_import, print_function
+from __future__ import absolute_import
+from __future__ import print_function
 
 import logging
 import requests
+
 from requests.exceptions import Timeout
 from threading import Thread
 from time import sleep
@@ -16,9 +18,9 @@ import six
 
 import ssl
 
-from tweepy.models import Status
 from tweepy.api import API
 from tweepy.error import TweepError
+from tweepy.models import Status
 
 from tweepy.utils import import_simplejson
 json = import_simplejson()

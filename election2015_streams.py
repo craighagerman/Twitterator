@@ -1,20 +1,21 @@
 # builtin imports
-from functools import partial
 import datetime
+import gzip
 import http
-from http.client import IncompleteRead
 import itertools
 import json
-import gzip
 import os
-from prettytable import PrettyTable
 import re
-import sys
 import shutil
+import sys
 import threading
 import time
-from urllib3 import exceptions
 import urllib3
+
+from functools import partial
+from http.client import IncompleteRead
+from prettytable import PrettyTable
+from urllib3 import exceptions
 
 # 3rd party imports : n.b. tweepy is in ~/Code since master branch in pip is broken
 import tweepy

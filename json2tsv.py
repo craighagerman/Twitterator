@@ -1,8 +1,9 @@
 
+import gzip
 import json
 import os
-import sys
 import re
+import sys
 
 nlpattern = re.compile(r"[\n|\t|\r]+")
 
@@ -47,7 +48,8 @@ def json2tsv(data):
 
                 if 'urls' in data['entities'] and data['entities']['urls']:
                     urls = data['entities']['urls']
-                    expanded_url = ",".join([x['expanded_url'] for x in urls])
+                    eurls = [x['expanded_url'] for x in urls if x['expanded_url'] != None]
+                    expanded_url = "" if len(eurls) == 0 else ",".join(eurls)
                 else:
                     expanded_url = ""
 
@@ -164,10 +166,6 @@ def convert(infile, outfile):
 
 
 
-
-
-
-
 def processDir(indir, outdir):
     jfiles = [f for f in os.listdir(indir) if f.endswith(".json")]
     jfiles.sort()
@@ -178,20 +176,19 @@ def processDir(indir, outdir):
         convert(infile, outfile)
 
 
-
-
-if __name__ == '__main__':
-    indir = sys.argv[1]
+def batchConvertGzJsonToTsv(indir, outdir):
     for root, dirs, files in os.walk(indir):
-        paths = [os.path.join(root, f) for f in files if f.endswith(".json")]
-        ## n.b. paths is a list of paths to .json files
-        # paths = [os.path.join(indir, f) for f in os.listdir(indir) if f.endswith(".json")]
+        paths = [os.path.join(root, f) for f in files if f.endswith(".gz")]
         for path in paths:
-            outpath = os.path.splitext(path)[0] + ".tsv"
+            f1 = os.path.split(path)[1]
+            f2 = f1.replace(".json.gz", ".tsv")
+            outpath = os.path.join(outdir, f2)
+            print("writing to {}".format(outpath))
             with open(outpath, "w") as fo:
-                lines = [line.strip() for line in open(path)]
+                data = gzip.open(path,"rb").read().decode("utf-8")
+                lines = data.split("\n")
                 for line in lines:
-                    print(line[0:100])
+                    # print(line[0:100])
                     try:
                         d = json.loads(line)
                         tsvline = json2tsv(d)
@@ -200,40 +197,22 @@ if __name__ == '__main__':
             print("\n====================================================\n")
 
 
-
-
-'''
-    import gzip
-    # GZIP compress existing file
-    def gzip_it(self, inpath):
-        outpath = inpath + ".gz"
-        with open(inpath, 'rb') as f_in:
-            with gzip.open(outpath, 'wb') as f_out:
-                f_out.writelines(f_in)
-        if self.delete_uncompressed:
-            self._deleteFile(inpath)
-
-
-'''
-
-
-
-
-
-# for d in dirs:
-#     outfile = os.path.join(d, os.path.split(d)[1] + ".tsv")
-#     with open(outfile, "w") as fo:
-#         jfiles = [os.path.join(d, f) for f in os.listdir(d) if f.endswith(".json")]
-#         for jfile in jfiles:
-#             print("processing {}".format(jfile))
-#             lines = [x.strip() for x in open(jfile)]
-#             for line in lines:
-#                 try:
-#                     data = json.loads(line)
-#                     tsvline = json2tsv(data)
-#                     fo.write(tsvline + "\n")
-#                 except:
-#                     continue
+def batchConvertJsonToTsv(indir, outdir):
+    for root, dirs, files in os.walk(indir):
+        paths = [os.path.join(root, f) for f in files if f.endswith(".json")]
+        for path in paths:
+            fname =  os.path.split(path)[1].replace(".json", ".tsv")
+            outpath = os.path.join(outdir, fname)
+            print("writing to {}".format(outpath))
+            with open(outpath, "w") as fo:
+                lines = [line.strip() for line in open(path)]
+                for line in lines:
+                    # print(line[0:100])
+                    try:
+                        d = json.loads(line)
+                        tsvline = json2tsv(d)
+                        fo.write(tsvline + "\n")
+                    except: ValueError
 
 
 
@@ -241,9 +220,12 @@ if __name__ == '__main__':
 
 
 
+if __name__ == '__main__':
+    indir = sys.argv[1]
+    outdir = sys.argv[2]
+    print("Indir:\t\t{}\nOutdir:\t\t{}\n".format(indir, outdir))
 
-
-
+    batchConvertGzJsonToTsv(indir, outdir)
 
 
 

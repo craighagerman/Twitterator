@@ -10,21 +10,22 @@
         25 0.1-360 degree location boxes.
 '''
 # builtin imports
-from functools import partial
 import datetime
+import gzip
 import http
-from http.client import IncompleteRead
 import itertools
 import json
-import gzip
 import os
 import re
-import sys
 import shutil
+import sys
 import threading
 import time
-from urllib3 import exceptions
 import urllib3
+
+from functools import partial
+from http.client import IncompleteRead
+from urllib3 import exceptions
 
 # 3rd party imports : n.b. tweepy is in ~/Code since master branch in pip is broken for Python3
 import tweepy

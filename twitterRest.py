@@ -15,8 +15,9 @@ import urllib.parse
 # SRC_DIR = os.path.abspath(os.path.dirname(__file__))
 # ROOT_DIR = os.path.dirname(SRC_DIR)
 # sys.path.insert(0, ROOT_DIR)
-from AuthClient import *
 import application_only_auth
+
+from AuthClient import *
 
 
 class TwitterRestClient(application_only_auth.Client):
@@ -33,7 +34,7 @@ class TwitterRestClient(application_only_auth.Client):
     def _queryRestApi(self, resource, parameters):
         query = "{}/{}/{}?{}".format(self.API_ENDPOINT, self.API_VERSION,
                                      resource, self._concatParam(parameters))
-        # print("Query:\t{}".format(query))
+        print("\n\tQuery:\t{}\n".format(query))
         return self.request(query)
 
     def _get_community(self, screen_name, resource, cursor, skip_status, include_user_entities):
@@ -119,26 +120,29 @@ class TwitterRestClient(application_only_auth.Client):
         parameters = {"id": ",".join(tweet_id_list)}
         return self._queryRestApi(resource, parameters)
 
-    def create_list(self, name, description):
-        '''  Create a new list for the authenicated user. n.b. cannot have more
-             than 1000 lists per accounts. '''
-        resource = "lists/create.json"
-        parameters = {"name": name, "description": description}
-        return self._queryRestApi(resource, parameters)
-
-    def add_members_to_list(self, list_id, screen_names):
-        ''' add members contained in screen_names to list given by list_id.
-            Can add 100 comma-separated screen_names. nb. Lists cannot have more
-            than 5000 members. '''
-        resource = "lists/members/create_all.json"
-        parameters = {"list_id": list_id,  "screen_name": ",".join(screen_names)}
-        return self._queryRestApi(resource, parameters)
-
-    def add_friend(self, screen_name):
-        # https://api.twitter.com/1.1/friendships/create.json
-        resource = "friendships/create.json"
-        parameters = {"screen_name": screen_name}
-        return self._queryRestApi(resource, parameters)
+    # --------- WON'T WORk - NEEDS USER AUTH ---------
+    # # def create_list(self, name, mode, description):
+    # def create_list(self, name):
+    #     '''  Create a new list for the authenicated user. n.b. cannot have more
+    #          than 1000 lists per accounts. '''
+    #     resource = "lists/create.json"
+    #     # parameters = {"name": name, "mode": mode, "description": description}
+    #     parameters = {"name": name}
+    #     return self._queryRestApi(resource, parameters)
+    #
+    # def add_members_to_list(self, list_id, screen_names):
+    #     ''' add members contained in screen_names to list given by list_id.
+    #         Can add 100 comma-separated screen_names. nb. Lists cannot have more
+    #         than 5000 members. '''
+    #     resource = "lists/members/create_all.json"
+    #     parameters = {"list_id": list_id,  "screen_name": ",".join(screen_names)}
+    #     return self._queryRestApi(resource, parameters)
+    #
+    # def add_friend(self, screen_name):
+    #     # https://api.twitter.com/1.1/friendships/create.json
+    #     resource = "friendships/create.json"
+    #     parameters = {"screen_name": screen_name}
+    #     return self._queryRestApi(resource, parameters)
 
     ''' n.b. Limit searches to 10 keywords and operators '''
 
@@ -153,11 +157,66 @@ class TwitterRestClient(application_only_auth.Client):
         return self._queryRestApi(resource, parameters)
 
 
-# https://api.twitter.com/1.1/friendships/create.json?user_id=1401881&follow=true
-'''
-https://api.twitter.com/1.1/friendships/create.json?screen_name=noradio&follow=true
-https://api.twitter.com/1.1/friendships/create.json?screen_name=JustinTrudeau&follow=true
-'''
+
+#e.g.
+#getAllFriends(appname, cred_file, "AllTwittterNews", outpath)
+def getAllFriends(appname, cred_file, usr, outpath):
+    AC = AuthClient(cred_file)
+    access_token, access_token_secret, consumer_key, consumer_secret = AC.get_credentials(appname)
+    client = TwitterRestClient(consumer_key, consumer_secret)
+    next_cursor = "-1"
+    num_results = 0
+    fo = open(outpath, "w")
+    while next_cursor != "0":
+        response = client.get_friends(usr, cursor=next_cursor)
+        next_cursor = response['next_cursor_str']
+        users = response['users']
+        num_results += len(users)
+        print("Total number downloaded: {}".format(num_results))
+        for u in users:
+            json_str = json.dumps(u)
+            fo.write(json_str + "\n")
+        time.sleep(3)
+    fo.close()
+
+
+
+
+# can be used for collecting all verified from the start or updating list
+# To update you just need to specify the last cursor (look at the previous logs)
+# n.b. currently over 250k
+# Rate Limits
+# GET friends/list  friends 15  15
+#
+#        Query:  https://api.twitter.com/1.1/friends/list.json?count=200&screen_name=verified&skip_status=false&cursor=1476332539729139290&include_rts=false
+#
+#Total number downloaded: 67599 / 239658
+#
+def get_all_verified(appname, cred_file, verifiedFile, next_cursor="-1"):
+    usr = "verified"
+    AC = AuthClient(cred_file)
+    access_token, access_token_secret, consumer_key, consumer_secret = AC.get_credentials(appname)
+    client = TwitterRestClient(consumer_key, consumer_secret)
+    profile = client.get_single_user(usr)
+    num_friends = profile['friends_count']
+    fo = open(verifiedFile, "a")
+    num_results = 0
+    while num_results < num_friends-1:
+        result = client.get_friends(usr, cursor=next_cursor)
+        next_cursor = result['next_cursor_str']
+        users = result['users']
+        num_results += len(users)
+        print("Total number downloaded: {} / {}".format(num_results, num_friends))
+        for u in users:
+            u["next_cursor"] = next_cursor
+            u["cursor"] = result['cursor_str']
+            json_str = json.dumps(u)
+            fo.write(json_str + "\n")
+        time.sleep(60)
+    fo.close()
+
+
+
 
 
 # def run(streamkind, appname, cred_file, rootdir, fileprefix):
@@ -169,7 +228,7 @@ def update_verified(appname, cred_file, verifiedFile):
     client = TwitterRestClient(consumer_key, consumer_secret)
     profile = client.get_single_user(usr)
     num_friends = profile['friends_count']
-    num_required = sum(1 for i in (line.strip() for line in open(verifiedFile))) - num_friends
+    num_required =  num_friends - sum(1 for i in (line.strip() for line in open(verifiedFile)))
     fo = open(updatedVerifedFile, "w")
     num_results = 0
     while num_results < num_required:
@@ -213,17 +272,7 @@ def makeTSV(verifiedFile, outputTSVfile):
             fo.write(tsv + "\n")
 
 
-def make_friends(appname, cred_file):
 
-    appname = "CanPol"
-    appname = "xdatax"
-    AC = AuthClient(cred_file)
-    access_token, access_token_secret, consumer_key, consumer_secret = AC.get_credentials(appname)
-    client = TwitterRestClient(consumer_key, consumer_secret)
-    usr = "JustinTrudeau"
-
-    newfriend = client.add_friend(usr)
-    profile = client.get_single_user(usr)
 
 
 if __name__ == '__main__':
@@ -244,30 +293,42 @@ if __name__ == '__main__':
     # update_verified(appname, cred_file, verifiedFile)
 
 
-'''
-q = "Україна"
-q = "Чернігівська область"
-q = urllib.parse.quote_plus(q)
-results = client.search_historical([qq], "uk")
-'''
+
+# --------------------------------------------------------------------------------------------------------------
+def getClient(appname, cred_file):
+    AC = AuthClient(cred_file)
+    access_token, access_token_secret, consumer_key, consumer_secret = AC.get_credentials(appname)
+    client = TwitterRestClient(consumer_key, consumer_secret)
+    return client
+
+def make_friends(appname, cred_file, usr):
+    client = getClient(appname, cred_file)
+    newfriend = client.add_friend(usr)
+    profile = client.get_single_user(usr)
 
 
-# newsorgs = ["bpolitics", "globalnewsto", "TimesLIVE", "politicshome", "timesofindia", "AP", "Telegraph", "HuffPostAlberta", "sltrib", "USATODAY", "CFR_org", "bangordailynews", "EconBizFin", "YahooCanada", "pewjournalism", "bw", "UPI", "japantimes", "CNNPolitics", "SFGate", "ABCPolitics", "Independent_ie", "pewglobal", "Time", "Annahar", "voxdotcom", "TheWindsorStar", "CTVNews", "nytpolitics", "CBCAlerts", "Forbes", "VancouverSun", "markets", "ReutersWorld", "AlArabiya_Eng", "EconUS", "StJohnsTelegram", "tassagency_en", "BBCNewsUS", "WashTimes", "ForeignAffairs", "MacleansMag", "CBCWorldNews", "ReutersPolitics", "globalsnewsroom", "News24", "nbcnews", "HuffPostCanada", "TheNationalUAE", "NYMag", "chicagotribune", "GuardianAfrica", "itvnews", "SputnikInt", "Newsweek", "businessinsider", "TorontoStar", "EconMEastAfrica", "usnews", "EconAsia", "CCTV_America", "phillyInquirer", "bostonherald", "IBTimes", "VOANews", "ftenergy", "MSNNews", "guardiannews", "dailydot", "thestate", "ReutersAfrica", "AOL", "POLITICOEurope", "MiamiHerald", "OutFrontCNN", "gmanews", "GuardianAus", "nationalpost", "theage", "TheNationNews", "WSJeurope", "thetimes", "WPReview", "heralddispatch", "MoscowTimes", "CBSPolitics", "gulf_news", "NBCNews", "ap", "abcnews", "thejournal_ie", "bbcword", "ReutersBiz", "latimes", "WSJIndia", "alaraby_en", "WorldNews", "EconEconomics", "globeandmail", "POLITICOMag", "Bloomberg", "WSJAsia", "TheCurrentCBC", "washingtonpost", "TIME", "EconEurope", "USNewsOpinion", "qz", "HuffPostBC", "i24news_EN", "mmfa", "smh", "DMRegister", "BusinessDesk", "NBCNightlyNews", "TODAYonline", "htTweets", "ajam", "IndyWorld", "StandardKenya", "FreeBeacon", "ftmedia", "cnnbrk", "firstpost", "GuardianUS", "TheWorldPost", "WSJPolitics", "WSJLive", "The_Japan_News", "nowthisnews", "aawsat_eng", "TheAtlanticGLBL", "CanadaFP", "ipoliticsca", "HuffPostDetroit", "guardianweekly", "MSN", "France24_en", "BI_Defense", "HuffPostPol", "HuffingtonPost", "USATODAYmoney", "WAtoday", "ReutersUK", "WSJThinkTank", "BostonGlobe", "AJEnglish", "globalnews", "IrishTimes", "The_New_Age", "EconUS", "YahooFinance", "politico", "CNNWorld", "ahramonline", "HuffPostBiz", "BBCtrending", "HuffPostUKPol", "ibnlive", "thedailybeast", "APBusiness", "YahooNews", "TelegraphNews", "CBCCanada", "BBCNewsAsia", "denverpost", "CBCPolitics", "McClatchyDC", "CP24", "TelegraphWorld", "TheEconomist", "observer", "democracynow", "EconBritain", "business", "Reuters", "euronews", "fteconomics", "WSJ", "Marinetimes", "STcom", "AP_Politics", "CBSnews", "CBSThisMorning", "australian", "washingtonian", "HoustonChron", "CNN", "ReutersUS", "guardian", "OttawaCitizen", "ThisWeekABC", "ottawasuncom", "PostTV", "bbcbreaking", "firstpost", "FT", "dcexaminer", "sfchronicle", "YahooNewsME", "baltimoresun", "cnn", "EgyIndependent", "IrishTimesWorld", "nationaljournal", "Independent", "reuters", "manila_bulletin", "NBCNewsWorld", "globepolitics", "HuffPostIndia", "msnbc", "FTMidEastAfrica", "todayszamancom", "intelligencer", "RT_com", "AFP"]
 
 
-# ===================================================================================================================
+def backfill(appname, cred_file, search_terms, outfile):
+    import json
+    import time
+    client = getClient(appname, cred_file)
+    with open(outfile, "w") as fo:
+        for search_term in search_terms:
+            kw = urllib.parse.quote(search_term)        # have to convert to ASCII % representation
+            result = client.search_historical([kw])
+            statuses = result['statuses']
+            print("{} results returned for {}".format(len(statuses), search_term))
+            jstr = [json.dumps(s) for s in statuses]
+            fo.write("\n".join(jstr))
+            time.sleep(1)
 
-#
-# TODO: (1) this make into a class
-#       (2) make REST API pull methods generators yielding each query (put file writing elsewhere)
-#
 
 
-#
-# TODO: (1) method to parse list result returned from get_lists: create dictionary mapping {screen_name: {list_name: list_id}}
-#       (2) make this class a sub-class application_only_auth.Client. Then methods can be called with e.g.  client.get_list_members(list_id)
-#           i.e. don't do any setup / authentication in this method. Only pulling/processing Twitter REST queries
-#       (3) move all i/o methods to another class. i.e. yield query requests here, but write to disk in another class.
+
+
+
+
 
 
 ''' Receive tweepy API and a list of user screen_names
