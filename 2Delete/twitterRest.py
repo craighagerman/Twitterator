@@ -10,17 +10,22 @@ import re
 import sys
 import time
 import urllib.parse
+
 # 3rd party imports
 # UGLY HACK - IS THERE A BETTER WAY TO IMPORT?
 # SRC_DIR = os.path.abspath(os.path.dirname(__file__))
 # ROOT_DIR = os.path.dirname(SRC_DIR)
 # sys.path.insert(0, ROOT_DIR)
-import application_only_auth
 
-from AuthClient import *
+# import application_only_auth
 
+from app_only_auth import *
 
-class TwitterRestClient(application_only_auth.Client):
+# from AuthClient import *
+from twitterator.twitAuthClient import TwitAuthClient
+
+# class TwitterRestClient(application_only_auth.Client):
+class TwitterRestClient(app_only_auth.Client):
 
     def __init__(self, consumer_key, consumer_secret):
         super().__init__(consumer_key, consumer_secret)
@@ -161,7 +166,7 @@ class TwitterRestClient(application_only_auth.Client):
 #e.g.
 #getAllFriends(appname, cred_file, "AllTwittterNews", outpath)
 def getAllFriends(appname, cred_file, usr, outpath):
-    AC = AuthClient(cred_file)
+    AC = TwitAuthClient(cred_file)
     access_token, access_token_secret, consumer_key, consumer_secret = AC.get_credentials(appname)
     client = TwitterRestClient(consumer_key, consumer_secret)
     next_cursor = "-1"
@@ -194,7 +199,7 @@ def getAllFriends(appname, cred_file, usr, outpath):
 #
 def get_all_verified(appname, cred_file, verifiedFile, next_cursor="-1"):
     usr = "verified"
-    AC = AuthClient(cred_file)
+    AC = TwitAuthClient(cred_file)
     access_token, access_token_secret, consumer_key, consumer_secret = AC.get_credentials(appname)
     client = TwitterRestClient(consumer_key, consumer_secret)
     profile = client.get_single_user(usr)
@@ -296,7 +301,7 @@ if __name__ == '__main__':
 
 # --------------------------------------------------------------------------------------------------------------
 def getClient(appname, cred_file):
-    AC = AuthClient(cred_file)
+    AC = TwitAuthClient(cred_file)
     access_token, access_token_secret, consumer_key, consumer_secret = AC.get_credentials(appname)
     client = TwitterRestClient(consumer_key, consumer_secret)
     return client

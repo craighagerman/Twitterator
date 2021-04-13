@@ -1,0 +1,6 @@
+
+tweepy
+twitter
+pandas
+ipython
+jupyter
