@@ -1,6 +1,8 @@
 
 credentials/
-
+.idea
+email_credentials*
+twitter_credentials*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
