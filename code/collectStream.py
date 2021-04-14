@@ -137,31 +137,19 @@ def main(config_dict):
     base_out_dir = os.path.join(data_dir, '03_stream_data')
     # define path to specific output directory depending on prefix
     out_dir = os.path.join(base_out_dir, config_dict['file_prefix'])
-
+    # get variables defined by YAML config
     streamkind = StreamKind[config_dict['streamkind'].upper()]
     appname = config_dict['appname']
     langs = config_dict['langs']
     file_prefix = config_dict['file_prefix']
-
     filter_list = get_filter_list(streamkind, config_dict, data_dir)
-
-    filter_list2 = ['18965790',
-                   '16034244',
-                   '18773470',
-                   '19038934',
-                   '18999969',
-                   '8736882',
-                   '14216661']
-
-    print('filter_list:')
-    for f in filter_list:
-        print(f'\t{f}')
-
+    # build a CollectorConfig object from variable definitions
     collect_config = CollectorConfig(streamkind, appname, langs, file_prefix, filter_list, credentials_file,
                                      email_credentials_file, out_dir)
-
+    # create a Collector object
     col = Collector(collect_config)
     col.init_msg()
+    # start the collector to collect a stream of tweets
     col.run_collector()
 
 
