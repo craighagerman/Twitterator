@@ -1,7 +1,1 @@
-
-numpy
-scipy
-pandas
-tabulate
-azure.core.credentials
-azure.ai.formrecognizer
+Code for using the Standard Twitter API version 1.1

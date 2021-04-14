@@ -1,8 +1,24 @@
 
 credentials/
-.idea
+.idea/
 email_credentials*
 twitter_credentials*
+
+# Ignore input/output data, except for MD file describing directories
+data/01_screen_names/*
+data/02_keyword_filter/*
+data/03_stream_data/*
+!data/data.md
+
+# Ignore config data, except for MD file describing yaml format
+config/*
+!config/config.md
+
+
+# Ignore WIP/Unused directories
+unused_code
+scratch
+2Delete
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

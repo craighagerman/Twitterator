@@ -12,6 +12,7 @@ def get_single_user(client, usr):
 	# check out profile on a single user
 	result = client.get_single_user(usr)
 	print(f"Name:            {result['name']}")
+	print(f"ID:              {result['id']}")
 	print(f"Location:        {result['location']}")
 	print(f"Description:     {result['description']}")
 	print(f"Statuses count:  {result['statuses_count']}")
@@ -57,8 +58,8 @@ def main(cred_file, appname):
 	usr = 'rorycapern'
 
 	# search_historical(client, usr)
-	demo_other_calls(client, usr)
-	# get_single_user(client, usr)
+	# demo_other_calls(client, usr)
+	get_single_user(client, usr)
 
 
 if __name__ == '__main__':

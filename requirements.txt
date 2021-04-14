@@ -1,4 +1,6 @@
-
+prettytable
+pathlib
+pyyaml
 tweepy
 twitter
 pandas

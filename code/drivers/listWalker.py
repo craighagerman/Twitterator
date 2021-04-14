@@ -59,8 +59,8 @@ import time
 import tweepy
 from tweepy.error import TweepError
 
-from app.twitterator.authorizeTweepy import AuthorizeTweepy
-from app.twitterator import tUtils
+from twitterator.authorizeTweepy import AuthorizeTweepy
+from twitterator import tUtils
 
 
 class ListWalker:
