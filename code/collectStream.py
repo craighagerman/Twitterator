@@ -1,14 +1,16 @@
 # builtin imports
 import http
+import pathlib
 from dataclasses import dataclass
 from enum import Enum
 from http.client import IncompleteRead
 from typing import List
 
+import pandas as pd
 import urllib3
 import yaml
 from prettytable import PrettyTable
-import pandas as pd
+
 from twitterator.twitAuthClient import TwitAuthClient
 from twitterator.twitterStream import *
 
@@ -122,7 +124,7 @@ def get_filter_list(streamkind, config_dict, base_data_dir):
 
 def main(config_dict):
     # path to this python project
-    project_dir = os.path.dirname(os.path.dirname(__file__))
+    project_dir = os.path.dirname(pathlib.Path(__file__).parent.absolute())
     # define path to credentials directory
     credentials_dir = os.path.join(project_dir, 'credentials')
     # define path to Twitter credentials file
@@ -165,12 +167,16 @@ def main(config_dict):
 
 if __name__ == '__main__':
     # path to this python project
-    project_dir = os.path.dirname(os.path.dirname(__file__))
+    project_dir = os.path.dirname(pathlib.Path(__file__).parent.absolute())
+    # project_dir = os.path.dirname(os.path.dirname(__file__))
+    print(f'project dir:  {project_dir}')
     # define path to config directory
     config_dir = os.path.join(project_dir, 'config')
+    print(f'config dir:  {config_dir}')
     # define which yaml config file to use
     # yaml_file = os.path.join(config_dir, 'random_firehose.yaml')
     yaml_file = os.path.join(config_dir, 'user_filter_can_execs.yaml')
+    print(f'yaml file:  {yaml_file}')
     # yaml_file = os.path.join(config_dir, 'keyword_filter_covid.yaml')
 
     with open(yaml_file) as f:
