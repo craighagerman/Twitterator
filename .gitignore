@@ -14,6 +14,7 @@ data/03_stream_data/*
 config/*
 !config/config.md
 
+rsync
 
 # Ignore WIP/Unused directories
 unused_code

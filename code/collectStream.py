@@ -64,16 +64,17 @@ class Collector:
         AC = TwitAuthClient(self.credentials_file)
         return AC.create_tweepy_client(self.appname)
 
+
     def run_collector(self):
 
         while True:
             try:
                 st = Streamer(self.api, self.auth, self.out_dir, self.file_prefix, self.email_credentials_file)
-                if self.streamkind == StreamKind.RANDOM :
+                if self.streamkind == StreamKind.RANDOM:
                     print("Filtering for keyword terms...")
                     # st.streamFilter(track_terms, langs)
                     st.streamRandom(self.langs)
-                elif self.streamkind == StreamKind.KEYWORD :
+                elif self.streamkind == StreamKind.KEYWORD:
                     print("Filtering for keyword terms...")
                     # st.streamFilter(track_terms, langs)
                     st.streamFilter(self.filter_list, self.langs)
@@ -104,7 +105,6 @@ class Collector:
 
 
 ########################################################################################################################
-########################################################################################################################
 
 def get_filter_list(streamkind, config_dict, base_data_dir):
     if streamkind == StreamKind.RANDOM:
@@ -114,9 +114,10 @@ def get_filter_list(streamkind, config_dict, base_data_dir):
         filter_file = config_dict['filter_file']
         file_path = os.path.join(base_data_dir, data_dir, filter_file)
         df = pd.read_csv(file_path, sep='\t')
-        if 'Handle' in df:
-            df['filter_list'] = df['Handle']
-        return [x.replace('@', '') for x in df['filter_list'].tolist()]
+        if 'id' in df:
+            df['filter_list'] = df['id']
+        # return [x.replace('@', '') for x in df['filter_list'].tolist()]
+        return [str(x) for x in df['filter_list'].tolist()]
 
 
 def main(config_dict):
@@ -130,12 +131,8 @@ def main(config_dict):
     # define path to data directory
     data_dir = os.path.join(project_dir, 'data')
     # define path to screen_name directory
-    screen_name_dir = os.path.join(data_dir, '01_screen_names')
-    # define path to keyword filter directory
-    keyword_filter_dir = os.path.join(data_dir, '02_keyword_filter')
     # define path to base output directory for storing collected tweets
     base_out_dir = os.path.join(data_dir, '03_stream_data')
-
     # define path to specific output directory depending on prefix
     out_dir = os.path.join(base_out_dir, config_dict['file_prefix'])
 
@@ -144,15 +141,22 @@ def main(config_dict):
     langs = config_dict['langs']
     file_prefix = config_dict['file_prefix']
 
-    # filter_list = get_filter_list(streamkind, config_dict, data_dir)
+    filter_list = get_filter_list(streamkind, config_dict, data_dir)
 
-    filter_list = ['10495312', '10495312']
+    filter_list2 = ['18965790',
+                   '16034244',
+                   '18773470',
+                   '19038934',
+                   '18999969',
+                   '8736882',
+                   '14216661']
 
     print('filter_list:')
     for f in filter_list:
         print(f'\t{f}')
 
-    collect_config = CollectorConfig(streamkind, appname, langs, file_prefix, filter_list, credentials_file, email_credentials_file, out_dir)
+    collect_config = CollectorConfig(streamkind, appname, langs, file_prefix, filter_list, credentials_file,
+                                     email_credentials_file, out_dir)
 
     col = Collector(collect_config)
     col.init_msg()
@@ -173,11 +177,6 @@ if __name__ == '__main__':
         config_dict = yaml.safe_load(f)
 
     main(config_dict)
-
-
-
-
-
 
 '''
 
